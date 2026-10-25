@@ -2,6 +2,12 @@
 
 Fan-Nachbau des MDR-Terminals aus der Serie *Severance*: ein Feld aus schwebenden Zahlen, in dem sich manche Gruppen „beängstigend“ anfühlen. Man markiert sie und sortiert sie in einen der fünf Behälter ein. Reine Demo ohne weitere Funktionen.
 
+**Ausprobieren:** https://oem-mrks.github.io/severance-mdr/
+
+## Video
+
+Ein 34-sekündiger Rundgang durch einen Arbeitstag am Terminal, vom ersten Zittern bis zur Waffelparty: [video/macrodata-refinement.mp4](video/macrodata-refinement.mp4) (im Browser abspielen: https://oem-mrks.github.io/severance-mdr/video/macrodata-refinement.mp4).
+
 ## Bedienung
 
 - Maus über das Feld bewegen: Zahlen in der Nähe wachsen, beängstigende Gruppen zittern.
