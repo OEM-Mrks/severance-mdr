@@ -10,7 +10,13 @@ Fan-Nachbau des MDR-Terminals aus der Serie *Severance*: ein Feld aus schwebende
 - Scrollen, Pfeiltasten oder zwei Finger verschieben das Feld.
 - `M` schaltet den Ton um, `?` zeigt die Hilfe.
 
-Jeder Behälter fasst vier Gruppen. Sind alle fünf voll, ist die Datei abgeschlossen und die nächste startet.
+Jeder Behälter fasst drei Gruppen. Sind alle fünf voll, ist die Datei abgeschlossen und es gibt eine Belohnung.
+
+## Belohnungen
+
+Nach jeder Datei gibt es reihum eine Belohnung: Fingerfalle, Music Dance Experience (Defiant Jazz, Techno oder Chillwave, die Zahlen tanzen zur Musik), Radiergummi, Melonen-Bar und als Höhepunkt die Waffelparty. Gesammelte Belohnungen und die Zahl der abgeschlossenen Dateien merkt sich der Browser. Ein volles Behältnis wird zwischendurch mit Lichteffekt, Ton und einem Lob quittiert.
+
+Zum Ausprobieren ohne Durchspielen: Seite mit `#test` öffnen und in der Konsole `mdr.showDone()` oder `mdr.startParty('mde', 'techno')` aufrufen.
 
 ## Lokal starten
 

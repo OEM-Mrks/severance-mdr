@@ -61,7 +61,7 @@
       <li><b>Klicken</b> markiert eine Zahl, <b>Ziehen</b> markiert einen Bereich. Rechtsklick oder <b>Esc</b> hebt die Auswahl auf.</li>
       <li>Klick auf einen Behälter (oder Taste <b>1–5</b>) sortiert die markierten Zahlen ein. Mindestens 60&nbsp;% einer Gruppe müssen markiert sein.</li>
       <li><b>Scrollen</b>, <b>Pfeiltasten</b> oder <b>zwei Finger</b> verschieben das Feld.</li>
-      <li>Jeder Behälter fasst vier Gruppen. Sind alle fünf voll, ist die Datei abgeschlossen.</li>
+      <li>Jeder Behälter fasst drei Gruppen. Sind alle fünf voll, ist die Datei abgeschlossen und es gibt eine Belohnung.</li>
       <li><b>M</b> schaltet den Ton an oder aus.</li>
     </ul>
     <button class="btn" data-close>Weiter verfeinern</button>
@@ -75,8 +75,27 @@
     <div class="dname"></div>
     <div class="dpct">100% Complete</div>
     <p>Deine Verfeinerung wurde dem Vorstand übermittelt.<br>Lumon dankt dir für deine Sorgfalt.</p>
+    <div class="reward">
+      <div class="rlabel">Deine Belohnung</div>
+      <div class="ricon"></div>
+      <div class="rname"></div>
+      <div class="rdesc"></div>
+    </div>
+    <div class="genres">
+      <button class="btn" data-genre="jazz">Defiant Jazz</button>
+      <button class="btn" data-genre="techno">Techno</button>
+      <button class="btn" data-genre="chill">Chillwave</button>
+    </div>
     <button class="btn" id="nextBtn">Nächste Datei</button>
+    <div class="rnext"></div>
+    <div class="shelf"></div>
   </div>
+</div>
+
+<div id="party">
+  <canvas></canvas>
+  <div class="ptitle"></div>
+  <button class="btn" id="partyStop">Zurück an die Arbeit</button>
 </div>
 
 <div id="splash">

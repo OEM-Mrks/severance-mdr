@@ -5,12 +5,42 @@
 
   // Spielfeld
   const COLS = 48, ROWS = 28;
-  const BINS = 5, PER_BIN = 4;
+  const BINS = 5, PER_BIN = 3;
   const TEMPERS = ['WO', 'FC', 'DR', 'MA'];
   const FILES = ['Cold Harbor', 'Siena', 'Tumwater', 'Dranesville', 'Allentown', 'Jesup',
     'Coleman', 'Narva', 'Eminence', 'Labrador', 'Yakima', 'Moonbeam'];
   const FG = '#9eefff';
   const FAM = "'IBM Plex Mono', ui-monospace, Menlo, monospace";
+
+  // Belohnungen, eine pro abgeschlossener Datei, reihum
+  const ICONS = {
+    trap: '<svg viewBox="0 0 130 44"><rect x="4" y="8" width="122" height="28" rx="14"/>' +
+      '<path d="M18 8l14 28M34 8l14 28M50 8l14 28M66 8l14 28M82 8l14 28M98 8l14 28M32 8L18 36M48 8L34 36M64 8L50 36M80 8L66 36M96 8L82 36M112 8L98 36"/></svg>',
+    eraser: '<svg viewBox="0 0 120 64"><path d="M34 8h80L92 52H12z"/><path d="M56 8L34 52"/><path d="M8 58h104"/></svg>',
+    melon: '<svg viewBox="0 0 120 70"><path d="M6 10a54 54 0 0 0 108 0z"/><path d="M16 10a44 44 0 0 0 88 0"/>' +
+      '<ellipse class="f" cx="40" cy="22" rx="2.2" ry="3.6"/><ellipse class="f" cx="60" cy="30" rx="2.2" ry="3.6"/>' +
+      '<ellipse class="f" cx="80" cy="22" rx="2.2" ry="3.6"/><ellipse class="f" cx="50" cy="40" rx="2.2" ry="3.6"/>' +
+      '<ellipse class="f" cx="70" cy="40" rx="2.2" ry="3.6"/></svg>',
+    mde: '<svg viewBox="0 0 80 80"><path d="M30 62V16l36-8v46M30 28l36-8"/>' +
+      '<ellipse class="f" cx="22" cy="62" rx="9" ry="7"/><ellipse class="f" cx="58" cy="54" rx="9" ry="7"/></svg>',
+    waffle: '<svg viewBox="0 0 80 80"><rect x="8" y="8" width="64" height="64" rx="12"/>' +
+      '<path d="M24 8v64M40 8v64M56 8v64M8 24h64M8 40h64M8 56h64"/></svg>',
+  };
+  const REWARDS = [
+    { id: 'trap', name: 'Fingerfalle', desc: 'Geflochten. Je mehr du ziehst, desto fester hält sie.' },
+    { id: 'mde', name: 'Music Dance Experience', desc: 'Wähle ein Genre. Die Zahlen tanzen mit.', party: 'mde' },
+    { id: 'eraser', name: 'Radiergummi', desc: 'In Lumon-Blau. Nur für den Dienstgebrauch.' },
+    { id: 'melon', name: 'Melonen-Bar', desc: 'Frisch aufgeschnittene Melone für die ganze Abteilung.' },
+    { id: 'waffle', name: 'Waffelparty', desc: 'Die höchste Ehre. Die Waffeln sind schon unterwegs.', party: 'waffle' },
+  ];
+  const PRAISE = ['Kier wäre stolz.', 'Vorbildliche Verfeinerung.', 'Der Vorstand ist erfreut.',
+    'Deine Gründlichkeit wurde notiert.', 'Sehr gut. Weiter so.', 'Die Zahlen sind jetzt in Sicherheit.'];
+
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* privates Fenster */ } },
+  };
+  const progress = store.get('mdr.progress', { files: 0, rewards: {} });
 
   const field = $('#field'), cv = $('#grid'), ctx = cv.getContext('2d');
   const fx = $('#fx'), fctx = fx.getContext('2d');
@@ -218,7 +248,16 @@
       for (const g of hits) bin.t[S.groups[g].temper]++;
       renderBins();
       renderHeader();
-      sfx('chime');
+      const bx = br.left + br.width / 2, by = br.top + br.height / 2;
+      if (bin.n >= PER_BIN) {
+        burst(bx, by, 36, 1);
+        pulse(binEl, 'glow');
+        sfx('binfull');
+        toast(`Behälter ${String(bi + 1).padStart(2, '0')} voll. ${PRAISE[Math.random() * PRAISE.length | 0]}`, 2600);
+      } else {
+        burst(bx, by, 8 + hits.length * 4, .6);
+        sfx('chime');
+      }
       closeBinLater(bi);
       if (total() >= 1 && !S.done) {
         S.done = true;
@@ -229,8 +268,146 @@
 
   function showDone() {
     sfx('done');
-    $('#done .dname').textContent = S.file;
-    $('#done').classList.add('show');
+    progress.files++;
+    const rw = REWARDS[(progress.files - 1) % REWARDS.length];
+    const upcoming = REWARDS[progress.files % REWARDS.length];
+    progress.rewards[rw.id] = (progress.rewards[rw.id] || 0) + 1;
+    store.set('mdr.progress', progress);
+
+    const d = $('#done');
+    d.querySelector('.dname').textContent = S.file;
+    d.querySelector('.ricon').innerHTML = ICONS[rw.id];
+    d.querySelector('.rname').textContent = rw.name;
+    d.querySelector('.rdesc').textContent = rw.desc;
+    d.querySelector('.genres').hidden = rw.party !== 'mde';
+    const next = $('#nextBtn');
+    next.textContent = rw.party === 'waffle' ? 'Party starten' : rw.party === 'mde' ? 'Überspringen' : 'Nächste Datei';
+    next.dataset.party = rw.party === 'waffle' ? 'waffle' : '';
+    d.querySelector('.rnext').textContent =
+      `Dateien abgeschlossen: ${progress.files} · Nächste Belohnung: ${upcoming.name}`;
+    d.querySelector('.shelf').innerHTML = REWARDS.filter((r) => progress.rewards[r.id])
+      .map((r) => `<div class="item" title="${r.name}">${ICONS[r.id]}<span>×${progress.rewards[r.id]}</span></div>`)
+      .join('');
+    d.classList.add('show');
+    setTimeout(() => burst(innerWidth / 2, innerHeight * .45, 60, 1.3), 500);
+  }
+
+  // ---------- Party (Music Dance Experience, Waffelparty) ----------
+
+  const partyEl = $('#party'), pcv = partyEl.querySelector('canvas'), pctx = pcv.getContext('2d');
+  const GENRES = { jazz: { name: 'Defiant Jazz', bpm: 150 }, techno: { name: 'Techno', bpm: 128 }, chill: { name: 'Chillwave', bpm: 92 } };
+  let P = null;
+
+  function startParty(kind, genre) {
+    $('#done').classList.remove('show');
+    const g = genre || 'jazz';
+    const a = muted ? null : ac();
+    P = { kind, genre: g, bpm: GENRES[g].bpm, dur: kind === 'mde' ? 22 : 15,
+      start: performance.now() + 120, waffles: [], lastSpawn: 0, master: null, timer: 0 };
+    if (a) {
+      P.master = a.createGain();
+      P.master.connect(a.destination);
+      scheduleMusic(a, a.currentTime + .12, P);
+    }
+    partyEl.querySelector('.ptitle').innerHTML = kind === 'mde'
+      ? `Music Dance Experience<small>${GENRES[g].name}</small>`
+      : 'Waffelparty<small>Lumon dankt dir</small>';
+    pcv.width = Math.round(innerWidth * DPR);
+    pcv.height = Math.round(innerHeight * DPR);
+    partyEl.classList.add('show');
+    P.timer = setTimeout(endParty, P.dur * 1000);
+  }
+
+  function endParty() {
+    if (!P) return;
+    clearTimeout(P.timer);
+    if (P.master && AC) {
+      const m = P.master;
+      m.gain.setTargetAtTime(0, AC.currentTime, .15);
+      setTimeout(() => m.disconnect(), 1000);
+    }
+    P = null;
+    partyEl.classList.remove('show');
+    newFile();
+  }
+
+  function drawParty(now) {
+    const w = innerWidth, h = innerHeight;
+    pctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    pctx.clearRect(0, 0, w, h);
+    const beat = Math.max(0, (now - P.start) / 1000 * P.bpm / 60);
+    const hit = Math.exp(-(beat % 1) * 5);
+    const bar = Math.floor(beat);
+    const cs = w < 700 ? 36 : 50;
+    const cols = Math.ceil(w / cs), rows = Math.ceil(h / cs);
+    pctx.font = `600 ${Math.round(cs * .5)}px ${FAM}`;
+    pctx.textAlign = 'center';
+    pctx.textBaseline = 'middle';
+    pctx.fillStyle = FG;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const wave = Math.sin(c * .45 + r * .3 - beat * Math.PI);
+        let x = (c + .5) * cs, y = (r + .5) * cs, s = 1, a = .35 + .45 * (wave * .5 + .5);
+        if (P.genre === 'techno') {
+          s += hit * .6 * ((c + r + bar) % 2 ? 1 : .2);
+          if ((r + bar) % 4 === 0) a = Math.min(1, a + hit * .6);
+        } else if (P.genre === 'chill') {
+          x += Math.sin(beat * Math.PI / 2 + r * .5) * cs * .3;
+          y += wave * cs * .2;
+          s += hit * .15;
+        } else {
+          x += Math.sin(beat * Math.PI + r * .7) * cs * .22;
+          y += wave * cs * .28 * (.4 + hit);
+          s += hit * .35 * (wave > 0 ? 1 : .3);
+        }
+        pctx.globalAlpha = a;
+        pctx.setTransform(DPR * s, 0, 0, DPR * s, DPR * x, DPR * y);
+        pctx.fillText(((c * 73856093 ^ r * 19349663 ^ (bar >> 1) * 83492791) >>> 0) % 10, 0, 0);
+      }
+    }
+    pctx.globalAlpha = 1;
+    pctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+    if (P.kind === 'waffle') {
+      if (!P.lastSpawn || now - P.lastSpawn > 2000) P.lastSpawn = now;
+      while (now - P.lastSpawn > 140) {
+        P.lastSpawn += 140;
+        P.waffles.push({ x: Math.random() * w, y: -50, vy: 90 + Math.random() * 140, rot: Math.random() * 6, vr: (Math.random() - .5) * 3, size: 30 + Math.random() * 34, t: P.lastSpawn });
+      }
+      pctx.lineWidth = 2;
+      pctx.strokeStyle = FG;
+      for (let i = P.waffles.length - 1; i >= 0; i--) {
+        const wf = P.waffles[i];
+        const tt = (now - wf.t) / 1000;
+        const y = wf.y + wf.vy * tt;
+        if (y > h + 60) { P.waffles.splice(i, 1); continue; }
+        const z = wf.size, q = z / 4;
+        pctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+        pctx.translate(wf.x, y);
+        pctx.rotate(wf.rot + wf.vr * tt);
+        pctx.fillStyle = 'rgba(1, 12, 23, .9)';
+        pctx.beginPath();
+        pctx.roundRect(-z / 2, -z / 2, z, z, z * .18);
+        pctx.fill();
+        pctx.stroke();
+        pctx.beginPath();
+        for (let k = 1; k < 4; k++) {
+          pctx.moveTo(-z / 2 + k * q, -z / 2); pctx.lineTo(-z / 2 + k * q, z / 2);
+          pctx.moveTo(-z / 2, -z / 2 + k * q); pctx.lineTo(z / 2, -z / 2 + k * q);
+        }
+        pctx.stroke();
+      }
+      pctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    }
+  }
+
+  function burst(x, y, n, power) {
+    const now = performance.now();
+    for (let i = 0; i < n; i++) {
+      const ang = Math.random() * Math.PI * 2, v = (100 + Math.random() * 260) * power;
+      particles.push({ burst: true, d: Math.random() * 10 | 0, x0: x, y0: y,
+        vx: Math.cos(ang) * v, vy: Math.sin(ang) * v - 200 * power, start: now, dur: 900 + Math.random() * 600 });
+    }
   }
 
   // ---------- Ansicht ----------
@@ -360,7 +537,13 @@
       const k = (now - p.start) / p.dur;
       if (k >= 1) { particles.splice(i, 1); continue; }
       let x = p.x0, y = p.y0, s = 1.35, a = 1;
-      if (k > 0) {
+      if (p.burst) {
+        const tt = (now - p.start) / 1000;
+        x += p.vx * tt;
+        y += p.vy * tt + 450 * tt * tt;
+        s = 1.2 - k * .6;
+        a = 1 - k * k;
+      } else if (k > 0) {
         const e = k < .5 ? 4 * k * k * k : 1 - (-2 * k + 2) ** 3 / 2;
         const cx = p.x0 + (p.x1 - p.x0) * .15, cy = p.y0 - 70;
         x = (1 - e) ** 2 * p.x0 + 2 * (1 - e) * e * cx + e * e * p.x1;
@@ -380,8 +563,12 @@
   function frame(now) {
     view.x += (view.tx - view.x) * .2;
     view.y += (view.ty - view.y) * .2;
-    updateAgitation();
-    drawGrid(now / 1000, now);
+    if (P) {
+      drawParty(now);
+    } else {
+      updateAgitation();
+      drawGrid(now / 1000, now);
+    }
     drawFx(now);
     updateCoords();
     requestAnimationFrame(frame);
@@ -478,6 +665,10 @@
 
   document.addEventListener('keydown', (e) => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (P) {
+      if (e.key === 'Escape') endParty();
+      return;
+    }
     const help = $('#help');
     if (help.classList.contains('show')) {
       if (e.key === 'Escape' || e.key === '?' || e.key === 'Enter') help.classList.remove('show');
@@ -504,10 +695,14 @@
   $('#helpBtn').addEventListener('click', () => $('#help').classList.add('show'));
   $('#help [data-close]').addEventListener('click', () => $('#help').classList.remove('show'));
   $('#help').addEventListener('click', (e) => { if (e.target.id === 'help') e.currentTarget.classList.remove('show'); });
-  $('#nextBtn').addEventListener('click', () => {
+  $('#nextBtn').addEventListener('click', (e) => {
+    if (e.currentTarget.dataset.party) { startParty('waffle', 'jazz'); return; }
     $('#done').classList.remove('show');
     newFile();
   });
+  document.querySelectorAll('[data-genre]').forEach((b) =>
+    b.addEventListener('click', () => startParty('mde', b.dataset.genre)));
+  $('#partyStop').addEventListener('click', endParty);
 
   let toastTimer = 0;
   function toast(text, ms) {
@@ -529,11 +724,7 @@
     return AC;
   }
 
-  function tone(f, d, { type = 'sine', vol = .03, to = 0, delay = 0 } = {}) {
-    if (muted) return;
-    const a = ac();
-    if (!a) return;
-    const t0 = a.currentTime + delay;
+  function voice(a, t0, f, d, { type = 'sine', vol = .03, to = 0, dest = null } = {}) {
     const o = a.createOscillator(), g = a.createGain();
     o.type = type;
     o.frequency.setValueAtTime(f, t0);
@@ -541,9 +732,82 @@
     g.gain.setValueAtTime(0, t0);
     g.gain.linearRampToValueAtTime(vol, t0 + .01);
     g.gain.exponentialRampToValueAtTime(.0001, t0 + d);
-    o.connect(g).connect(a.destination);
+    o.connect(g).connect(dest || a.destination);
     o.start(t0);
     o.stop(t0 + d + .05);
+  }
+
+  function tone(f, d, opts = {}) {
+    if (muted) return;
+    const a = ac();
+    if (a) voice(a, a.currentTime + (opts.delay || 0), f, d, opts);
+  }
+
+  let NOISE = null;
+  function noise(a, t0, d, vol, hp, dest) {
+    if (!NOISE) {
+      NOISE = a.createBuffer(1, a.sampleRate / 2, a.sampleRate);
+      const ch = NOISE.getChannelData(0);
+      for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1;
+    }
+    const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+    s.buffer = NOISE;
+    f.type = 'highpass';
+    f.frequency.value = hp;
+    g.gain.setValueAtTime(vol, t0);
+    g.gain.exponentialRampToValueAtTime(.0001, t0 + d);
+    s.connect(f).connect(g).connect(dest);
+    s.start(t0);
+    s.stop(t0 + d + .02);
+  }
+
+  function kick(a, t0, dest, vol) {
+    voice(a, t0, 150, .28, { vol, to: 42, dest });
+  }
+
+  const hz = (n) => 440 * 2 ** ((n - 69) / 12);
+  const pick = (arr) => arr[Math.random() * arr.length | 0];
+
+  function scheduleMusic(a, t0, p) {
+    const spb = 60 / p.bpm, end = t0 + p.dur, m = p.master;
+    if (p.genre === 'jazz') {
+      // Walking Bass über Dm7 G7 Cmaj7 A7, geswingte Ride, Akkord-Stabs auf 2 und 4
+      const prog = [[38, 41, 45, 48], [43, 47, 50, 53], [36, 40, 43, 47], [33, 37, 40, 43]];
+      const scale = [62, 64, 65, 67, 69, 71, 72, 74, 77];
+      for (let b = 0, t = t0; t < end; b++, t += spb) {
+        const ch = prog[(b >> 2) % 4];
+        voice(a, t, hz(ch[b % 4]), spb * .9, { type: 'triangle', vol: .14, dest: m });
+        noise(a, t, .14, .05, 7000, m);
+        if (b % 2) {
+          noise(a, t + spb * 2 / 3, .08, .035, 7000, m);
+          ch.forEach((n) => voice(a, t, hz(n + 24), .16, { type: 'square', vol: .016, dest: m }));
+        } else {
+          kick(a, t, m, .22);
+        }
+        if (b >= 8 && Math.random() < .7) {
+          voice(a, t + (Math.random() < .5 ? 0 : spb * 2 / 3), hz(pick(scale)), spb * .55, { type: 'sawtooth', vol: .018, dest: m });
+        }
+      }
+    } else if (p.genre === 'techno') {
+      const bass = [45, 45, 57, 45, 48, 45, 57, 52];
+      const arp = [69, 72, 76, 79, 76, 72];
+      for (let s = 0, t = t0; t < end; s++, t += spb / 4) {
+        if (s % 4 === 0) kick(a, t, m, .42);
+        if (s % 4 === 2) noise(a, t, .05, .05, 9000, m);
+        if (s % 8 === 4) noise(a, t, .16, .07, 1500, m);
+        voice(a, t, hz(bass[s % 8]), spb / 4 * .8, { type: 'sawtooth', vol: .03, dest: m });
+        if (s >= 32) voice(a, t, hz(arp[s % 6]), spb / 4 * .7, { type: 'square', vol: .012, dest: m });
+      }
+    } else {
+      const pads = [[57, 60, 64, 67], [53, 57, 60, 64], [48, 52, 55, 59], [55, 59, 62, 65]];
+      const penta = [69, 72, 74, 76, 79, 81];
+      for (let e = 0, t = t0; t < end; e++, t += spb / 2) {
+        if (e % 8 === 0) pads[(e >> 3) % 4].forEach((n) => voice(a, t, hz(n), spb * 4, { type: 'triangle', vol: .026, dest: m }));
+        if (e % 4 === 0) kick(a, t, m, .26);
+        if (e % 2) noise(a, t, .06, .02, 8000, m);
+        if (e >= 8 && Math.random() < .4) voice(a, t, hz(pick(penta)), spb * .9, { vol: .035, dest: m });
+      }
+    }
   }
 
   function sfx(name) {
@@ -552,11 +816,15 @@
       case 'err': tone(150, .16, { type: 'square', vol: .015 }); tone(118, .2, { type: 'square', vol: .015, delay: .12 }); break;
       case 'whoosh': tone(880, .7, { type: 'triangle', vol: .018, to: 160 }); break;
       case 'chime': tone(660, .5, { vol: .028 }); tone(990, .7, { vol: .02, delay: .09 }); break;
+      case 'binfull': [660, 830, 990, 1320].forEach((f, i) => tone(f, .6, { vol: .028, delay: i * .07 })); break;
       case 'done': [523, 659, 784, 1046].forEach((f, i) => tone(f, 1, { vol: .028, delay: i * .15 })); break;
     }
   }
 
   // ---------- Start ----------
+
+  // Testzugang: index.html#test
+  if (location.hash === '#test') window.mdr = { showDone, startParty, progress };
 
   buildBins();
   window.addEventListener('resize', resize);
