@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Macrodata Refinement</title>
+<meta name="description" content="Fan-Nachbau des Macrodata-Refinement-Terminals aus der Serie Severance.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23010c17'/%3E%3Cg fill='none' stroke='%239eefff' stroke-width='3'%3E%3Cellipse cx='32' cy='32' rx='28' ry='16'/%3E%3Cellipse cx='32' cy='32' rx='12' ry='16'/%3E%3C/g%3E%3C/svg%3E">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="lumon" viewBox="0 0 140 70">
+      <ellipse cx="70" cy="35" rx="66" ry="31" fill="#020f1c"/>
+      <g fill="none" stroke="currentColor" stroke-width="2.4">
+        <ellipse cx="70" cy="35" rx="66" ry="31"/>
+        <ellipse cx="70" cy="35" rx="44" ry="31"/>
+        <ellipse cx="70" cy="35" rx="20" ry="31"/>
+      </g>
+      <rect x="9" y="24" width="122" height="22" fill="#020f1c" stroke="currentColor" stroke-width="2.4"/>
+      <text x="70" y="40.6" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="15" font-weight="600" letter-spacing="4" fill="currentColor">LUMON</text>
+    </symbol>
+  </defs>
+</svg>
+
+<div id="screen">
+  <header>
+    <div class="hbox">
+      <div class="hfill"></div>
+      <span class="fname">Cold Harbor</span>
+      <span class="hpct">0% Complete</span>
+    </div>
+    <svg class="logo"><use href="#lumon"/></svg>
+  </header>
+  <div class="rule"></div>
+
+  <div id="field"><canvas id="grid"></canvas></div>
+
+  <div class="rule"></div>
+  <div id="bins"></div>
+  <footer>
+    <span id="coords">0x000000 : 0x000000</span>
+    <button id="helpBtn" aria-label="Hilfe">?</button>
+  </footer>
+</div>
+
+<canvas id="fx"></canvas>
+<div id="crt"></div>
+
+<div id="toast">Finde die Zahlen, die sich beängstigend anfühlen. Markieren, dann einen Behälter wählen. <b>?</b> = Hilfe</div>
+
+<div id="help" class="ovl">
+  <div class="card">
+    <h2>Macrodata Refinement</h2>
+    <ul>
+      <li>Fahre mit der Maus über das Zahlenfeld. Manche Zahlengruppen fühlen sich <em>beängstigend</em> an: Sie zittern und wachsen, wenn du in ihre Nähe kommst.</li>
+      <li><b>Klicken</b> markiert eine Zahl, <b>Ziehen</b> markiert einen Bereich. Rechtsklick oder <b>Esc</b> hebt die Auswahl auf.</li>
+      <li>Klick auf einen Behälter (oder Taste <b>1–5</b>) sortiert die markierten Zahlen ein. Mindestens 60&nbsp;% einer Gruppe müssen markiert sein.</li>
+      <li><b>Scrollen</b>, <b>Pfeiltasten</b> oder <b>zwei Finger</b> verschieben das Feld.</li>
+      <li>Jeder Behälter fasst vier Gruppen. Sind alle fünf voll, ist die Datei abgeschlossen.</li>
+      <li><b>M</b> schaltet den Ton an oder aus.</li>
+    </ul>
+    <button class="btn" data-close>Weiter verfeinern</button>
+    <p class="fine">Fan-Projekt. Nicht mit Apple TV+ oder den Machern von „Severance“ verbunden.</p>
+  </div>
+</div>
+
+<div id="done" class="ovl">
+  <div class="card center">
+    <svg class="biglogo"><use href="#lumon"/></svg>
+    <div class="dname"></div>
+    <div class="dpct">100% Complete</div>
+    <p>Deine Verfeinerung wurde dem Vorstand übermittelt.<br>Lumon dankt dir für deine Sorgfalt.</p>
+    <button class="btn" id="nextBtn">Nächste Datei</button>
+  </div>
+</div>
+
+<div id="splash">
+  <svg class="biglogo"><use href="#lumon"/></svg>
+  <div class="stitle">Macrodata Refinement</div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
