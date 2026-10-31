@@ -9,8 +9,8 @@
   const TEMPERS = ['WO', 'FC', 'DR', 'MA'];
   const FILES = ['Cold Harbor', 'Siena', 'Tumwater', 'Dranesville', 'Allentown', 'Jesup',
     'Coleman', 'Narva', 'Eminence', 'Labrador', 'Yakima', 'Moonbeam'];
-  const FG = '#9eefff';
-  const FAM = "'IBM Plex Mono', ui-monospace, Menlo, monospace";
+  const FG = '#d4f6ff';
+  const FAM = "Montserrat, system-ui, sans-serif";
 
   // Belohnungen, eine pro abgeschlossener Datei, reihum
   const ICONS = {
@@ -78,6 +78,8 @@
   function makeGroups() {
     const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
     const want = BINS * PER_BIN;
+    // jede Gruppe gehört in genau einen Behälter, jeder Behälter bekommt PER_BIN Gruppen
+    const targets = Array.from({ length: want }, (_, i) => i % BINS).sort(() => Math.random() - .5);
     let tries = 0;
     while (S.groups.length < want && tries++ < 8000) {
       const c0 = 1 + (Math.random() * (COLS - 2) | 0), r0 = 1 + (Math.random() * (ROWS - 2) | 0);
@@ -98,12 +100,12 @@
         set.push(ni);
       }
       for (const i of set) S.cells[i].sp *= 1.7;
-      S.groups.push({ cells: set, temper: TEMPERS[Math.random() * 4 | 0], alive: true, agit: 0 });
+      S.groups.push({ cells: set, temper: TEMPERS[Math.random() * 4 | 0], bin: targets[gi], alive: true, agit: 0 });
     }
   }
 
-  function newFile() {
-    S.file = FILES[S.fileIdx++ % FILES.length];
+  function newFile(name) {
+    S.file = name || FILES[S.fileIdx++ % FILES.length];
     S.cells = Array.from({ length: COLS * ROWS }, mkCell);
     S.groups = [];
     makeGroups();
@@ -130,8 +132,8 @@
       el.innerHTML =
         `<div class="panel"><div class="ph">${n}</div>` +
         TEMPERS.map((t) => `<div class="row"><span>${t}</span><div class="track"><i data-t="${t}"></i></div></div>`).join('') +
-        `</div><div class="box"><div class="lid l"></div><div class="lid r"></div><span>${n}</span></div>` +
-        `<div class="bbar"><i></i><span>0%</span></div>`;
+        `</div><div class="box"><div class="lid l"></div><div class="lmid"></div><div class="lid r"></div><span>${n}</span></div>` +
+        `<div class="bbar"><span class="t">0%</span><i><span class="t">0%</span></i></div>`;
       el.addEventListener('click', () => refine(i));
       binsEl.appendChild(el);
       binEls.push(el);
@@ -143,7 +145,7 @@
       const el = binEls[i];
       const p = b.n / PER_BIN;
       el.querySelector('.bbar i').style.width = p * 100 + '%';
-      el.querySelector('.bbar span').textContent = Math.round(p * 100) + '%';
+      el.querySelectorAll('.bbar .t').forEach((t) => { t.textContent = Math.round(p * 100) + '%'; });
       for (const t of TEMPERS) el.querySelector(`.track i[data-t="${t}"]`).style.width = b.t[t] / PER_BIN * 100 + '%';
       el.classList.toggle('full', b.n >= PER_BIN);
     });
@@ -156,7 +158,7 @@
   function renderHeader() {
     const p = Math.round(total() * 100);
     $('.fname').textContent = S.file;
-    $('.hpct').textContent = p + '% Complete';
+    $('.hpct').textContent = p + '%';
     $('.hfill').style.width = p + '%';
     document.title = `${S.file} – ${p}% Complete`;
   }
@@ -206,6 +208,13 @@
       for (const i of sel) S.cells[i].shake = 1;
       sfx('err');
       return;
+    }
+    const wrong = hits.filter((g) => S.groups[g].bin !== bi);
+    hits = hits.filter((g) => S.groups[g].bin === bi);
+    if (wrong.length) {
+      for (const g of wrong) for (const i of S.groups[g].cells) S.cells[i].shake = 1;
+      nope();
+      if (!hits.length) return;
     }
     const room = PER_BIN - bin.n - bin.pending;
     if (room <= 0) { pulse(binEl, 'shake'); sfx('err'); return; }
@@ -266,6 +275,15 @@
     }, end + 40);
   }
 
+  let nopeTimer = 0;
+  function nope() {
+    const el = $('#nope');
+    el.classList.add('show');
+    sfx('err');
+    clearTimeout(nopeTimer);
+    nopeTimer = setTimeout(() => el.classList.remove('show'), 1200);
+  }
+
   function showDone() {
     sfx('done');
     progress.files++;
@@ -277,7 +295,7 @@
     const d = $('#done');
     d.querySelector('.dname').textContent = S.file;
     d.querySelector('.ricon').innerHTML = ICONS[rw.id];
-    d.querySelector('.rname').textContent = rw.name;
+    d.querySelector('.rtitle').textContent = rw.name;
     d.querySelector('.rdesc').textContent = rw.desc;
     d.querySelector('.genres').hidden = rw.party !== 'mde';
     const next = $('#nextBtn');
@@ -312,8 +330,8 @@
     partyEl.querySelector('.ptitle').innerHTML = kind === 'mde'
       ? `Music Dance Experience<small>${GENRES[g].name}</small>`
       : 'Waffelparty<small>Lumon dankt dir</small>';
-    pcv.width = Math.round(innerWidth * DPR);
-    pcv.height = Math.round(innerHeight * DPR);
+    pcv.width = Math.round(partyEl.clientWidth * DPR);
+    pcv.height = Math.round(partyEl.clientHeight * DPR);
     partyEl.classList.add('show');
     P.timer = setTimeout(endParty, P.dur * 1000);
   }
@@ -332,7 +350,7 @@
   }
 
   function drawParty(now) {
-    const w = innerWidth, h = innerHeight;
+    const w = partyEl.clientWidth, h = partyEl.clientHeight;
     pctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     pctx.clearRect(0, 0, w, h);
     const beat = Math.max(0, (now - P.start) / 1000 * P.bpm / 60);
@@ -424,8 +442,8 @@
     W = r.width; H = r.height;
     cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
     fx.width = Math.round(innerWidth * DPR); fx.height = Math.round(innerHeight * DPR);
-    CS = innerWidth < 700 ? 36 : innerWidth > 1700 ? 54 : 46;
-    FS = Math.round(CS * .46);
+    CS = innerWidth < 700 ? 34 : innerWidth > 1700 ? 48 : 40;
+    FS = Math.round(CS * .44);
     clampView();
   }
 
@@ -665,6 +683,7 @@
 
   document.addEventListener('keydown', (e) => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (bootKey(e)) return;
     if (P) {
       if (e.key === 'Escape') endParty();
       return;
@@ -821,10 +840,149 @@
     }
   }
 
+  // ---------- Bootsequenz (wie im Handbuch: Log, Logo, Eingabe, Rolodex) ----------
+
+  const ROLO_NAMES = ['Allentown', 'Bellwether', 'Cold Harbor', 'Dranesville', 'Eminence', 'Fairhaven', 'Grovetown',
+    'Halcyon', 'Ironwood', 'Jesup', 'Kingsport', 'Labrador', 'Moonbeam', 'Narva', 'Oakhurst', 'Pellston', 'Quarry Hill',
+    'Ridgeway', 'Siena', 'Tumwater', 'Upland', 'Vireo', 'Wellfleet', 'Xenia', 'Yakima', 'Zephyr'];
+  const BOOT_LINES = ['MDR terminal · firmware 7.1.4', 'probe bus 0x00A1 ............ ok',
+    'input: trackball 1  keyboard 1  pointer 0', 'display: phosphor P4 · sync locked', 'mem check 4096K ........... ok',
+    'mount /vol/severed (read only)', 'load module lexicon.core', 'load module tempers [WO FC DR MA]', 'load module bins x5',
+    'calibrate magnifier ........ ok', 'link supervisor channel 0x3F', 'seed data field 0x6AF307 : 0x38A6B7',
+    'checksum 9E21-04B7-C3D0 ok', 'audio: 1 output stream', 'clock sync · floor 4', 'handshake board relay ...... ok',
+    'start refine'];
+  const bootEl = $('#boot');
+  const B = { stage: 'off', name: '', target: 0, cur: 0, timers: [], typing: false };
+  const later = (fn, ms) => { B.timers.push(setTimeout(fn, ms)); };
+  const titleCase = (t) => t.trim().replace(/\s+/g, ' ').toLowerCase().replace(/(^|\s)\S/g, (m) => m.toUpperCase());
+
+  function runBoot() {
+    B.stage = 'log';
+    const log = $('#bootlog');
+    BOOT_LINES.forEach((line, i) => later(() => { log.textContent += line + '\n'; }, 150 + i * 55));
+    later(bootLogo, 150 + BOOT_LINES.length * 55 + 500);
+  }
+
+  function bootLogo() {
+    B.stage = 'logo';
+    $('#bootlog').style.display = 'none';
+    $('#bootlogo').classList.add('spin');
+    later(bootPrompt, 2800);
+  }
+
+  function bootPrompt() {
+    B.timers.forEach(clearTimeout);
+    B.timers = [];
+    B.stage = 'prompt';
+    $('#bootlog').style.display = 'none';
+    $('#bootlogo').style.display = 'none';
+    $('#prompt').style.display = 'block';
+    $('#phint').style.display = 'block';
+    pinput.value = '';
+    pinput.focus({ preventScroll: true });
+  }
+
+  const pinput = $('#pinput');
+  const setPrompt = () => { $('#ptext').textContent = B.name; };
+  pinput.addEventListener('input', () => {
+    if (B.stage !== 'prompt' || B.typing) return;
+    B.name = pinput.value.replace(/[^\p{L}\p{N} .'-]/gu, '').slice(0, 24);
+    setPrompt();
+    sfx('tick');
+  });
+
+  function autoType(text) {
+    B.typing = true;
+    B.name = '';
+    [...text].forEach((ch, i) => later(() => { B.name += ch; setPrompt(); sfx('tick'); }, 90 * i));
+    later(bootRolodex, 90 * text.length + 450);
+  }
+
+  function submitPrompt() {
+    if (B.typing) return;
+    if (!B.name.trim()) autoType(FILES[S.fileIdx % FILES.length]);
+    else bootRolodex();
+  }
+
+  function bootRolodex() {
+    B.stage = 'rolodex';
+    B.typing = false;
+    B.name = titleCase(B.name);
+    const first = B.name.toUpperCase().charCodeAt(0) - 65;
+    B.target = first >= 0 && first < 26 ? first : 2;
+    B.cur = (B.target + 23) % 26;
+    $('#prompt').style.display = 'none';
+    $('#phint').style.display = 'none';
+    pinput.blur();
+    $('#rolodex').style.display = 'flex';
+    renderRolo();
+  }
+
+  function renderRolo() {
+    const L = (i) => String.fromCharCode(65 + (i + 26) % 26);
+    $('.rtabs').innerHTML = [-1, 0, 1, 2].map((d) => `<span class="${d ? '' : 'cur'}">${L(B.cur + d)}</span>`).join('');
+    const nm = $('#rolodex .rname'), mine = B.cur === B.target;
+    nm.textContent = mine ? B.name : ROLO_NAMES[B.cur];
+    nm.classList.toggle('other', !mine);
+  }
+
+  function flipRolo(dir) {
+    if (B.stage !== 'rolodex') return;
+    B.cur = (B.cur + dir + 26) % 26;
+    const card = $('.rcard.top');
+    card.classList.remove('flip');
+    void card.offsetWidth;
+    card.classList.add('flip');
+    setTimeout(renderRolo, 130);
+    sfx('tick');
+  }
+
+  function pickCard() {
+    if (B.stage !== 'rolodex') return;
+    if (B.cur === B.target) { finishBoot(); return; }
+    flipRolo((B.target - B.cur + 26) % 26 <= 13 ? 1 : -1);
+  }
+
+  function finishBoot() {
+    if (B.stage === 'off') return;
+    B.timers.forEach(clearTimeout);
+    B.stage = 'off';
+    bootEl.classList.add('hide');
+    newFile(titleCase(B.name) || undefined);
+    setTimeout(() => toast(null, 7000), 700);
+  }
+
+  function bootKey(e) {
+    if (B.stage === 'off') return false;
+    const k = e.key;
+    if (k === 'Escape') finishBoot();
+    else if (B.stage === 'prompt') {
+      // Buchstaben kommen über das versteckte Eingabefeld
+      if (k !== 'Enter') return true;
+      if (!B.typing) submitPrompt();
+    } else if (B.stage === 'rolodex') {
+      if (k === 'ArrowRight' || k === 'ArrowDown' || k === 'PageDown') flipRolo(1);
+      else if (k === 'ArrowLeft' || k === 'ArrowUp' || k === 'PageUp') flipRolo(-1);
+      else if (k === 'Enter') pickCard();
+    } else if (k === 'Enter' || k === ' ') bootPrompt();
+    e.preventDefault();
+    return true;
+  }
+
+  bootEl.addEventListener('pointerdown', () => ac());
+  bootEl.addEventListener('click', (e) => {
+    const t = e.target;
+    if (t.closest('#skip')) finishBoot();
+    else if (t.closest('.rnav button')) flipRolo(+t.closest('button').dataset.dir);
+    else if (t.closest('.rcard.top')) pickCard();
+    else if (B.stage === 'prompt') { if (B.name.trim()) submitPrompt(); else pinput.focus(); }
+    else if (B.stage === 'log' || B.stage === 'logo') bootPrompt();
+  });
+
   // ---------- Start ----------
 
   // Testzugang: index.html#test
-  if (location.hash === '#test') window.mdr = { showDone, startParty, progress };
+  if (location.hash === '#test') window.mdr = { showDone, startParty, progress, S, view, COLS };
 
   buildBins();
   window.addEventListener('resize', resize);
@@ -832,16 +990,5 @@
   newFile();
   requestAnimationFrame(frame);
 
-  const splash = $('#splash');
-  let started = false;
-  function hideSplash() {
-    if (started) return;
-    started = true;
-    splash.classList.add('hide');
-    setTimeout(() => toast(null, 7000), 700);
-  }
-  splash.addEventListener('pointerdown', hideSplash);
-  const fontReady = document.fonts ? document.fonts.load(`500 20px 'IBM Plex Mono'`).catch(() => {}) : Promise.resolve();
-  Promise.race([fontReady, new Promise((r) => setTimeout(r, 1500))])
-    .then(() => setTimeout(hideSplash, 2200));
+  runBoot();
 })();

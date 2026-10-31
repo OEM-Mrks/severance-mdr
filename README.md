@@ -8,11 +8,23 @@ Fan-Nachbau des MDR-Terminals aus der Serie *Severance*: ein Feld aus schwebende
 
 Ein 34-sekündiger Rundgang durch einen Arbeitstag am Terminal, vom ersten Zittern bis zur Waffelparty: [video/macrodata-refinement.mp4](video/macrodata-refinement.mp4) (im Browser abspielen: https://oem-mrks.github.io/severance-mdr/video/macrodata-refinement.mp4).
 
+## Ablauf wie im Handbuch
+
+Aufbau und Ablauf folgen den Seiten „All About Refining Numbers“ aus dem offiziellen Begleitbuch zur Serie:
+
+1. Der Rechner bootet mit Systemzeilen, dann dreht sich das Lumon-Logo ins Bild.
+2. Am blinkenden `>` den Namen der Datei eintippen und Enter drücken (leer lassen nimmt die zugewiesene Datei).
+3. Im Rolodex mit den Pfeiltasten zum Buchstaben der Datei blättern und die Karte anklicken.
+4. Das Programm lädt: Dateiname und Fortschritt oben, Zahlenfeld, fünf Behälter mit Füllstand, Koordinaten unten.
+
+`Esc` oder „Überspringen“ springt jederzeit direkt ins Programm.
+
 ## Bedienung
 
-- Maus über das Feld bewegen: Zahlen in der Nähe wachsen, beängstigende Gruppen zittern.
+- Mit der Lupe über das Feld fahren: Zahlen in der Nähe wachsen, beängstigende Gruppen zittern.
 - Klicken markiert eine Zahl, Ziehen markiert einen Bereich. Rechtsklick oder `Esc` hebt die Auswahl auf.
 - Behälter anklicken oder Taste `1`–`5` drücken, um die Auswahl einzusortieren. Mindestens 60 % einer Gruppe müssen markiert sein.
+- Jede Gruppe gehört in genau einen Behälter. Beim richtigen klappt der Behälter auf und zeigt seinen Bericht (WO, FC, DR, MA), beim falschen erscheint „Nope“ und die Zahlen bleiben im Feld.
 - Scrollen, Pfeiltasten oder zwei Finger verschieben das Feld.
 - `M` schaltet den Ton um, `?` zeigt die Hilfe.
 

@@ -7,22 +7,28 @@
 <meta name="description" content="Fan-Nachbau des Macrodata-Refinement-Terminals aus der Serie Severance.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23010c17'/%3E%3Cg fill='none' stroke='%239eefff' stroke-width='3'%3E%3Cellipse cx='32' cy='32' rx='28' ry='16'/%3E%3Cellipse cx='32' cy='32' rx='12' ry='16'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%23020405'/%3E%3Cg fill='none' stroke='%23d4f6ff' stroke-width='3'%3E%3Cellipse cx='32' cy='32' rx='28' ry='16'/%3E%3Cellipse cx='32' cy='32' rx='12' ry='16'/%3E%3C/g%3E%3C/svg%3E">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute">
   <defs>
-    <symbol id="lumon" viewBox="0 0 140 70">
-      <ellipse cx="70" cy="35" rx="66" ry="31" fill="#020f1c"/>
-      <g fill="none" stroke="currentColor" stroke-width="2.4">
-        <ellipse cx="70" cy="35" rx="66" ry="31"/>
-        <ellipse cx="70" cy="35" rx="44" ry="31"/>
-        <ellipse cx="70" cy="35" rx="20" ry="31"/>
+    <symbol id="lumon" viewBox="0 0 160 80">
+      <ellipse cx="80" cy="40" rx="76" ry="36" style="fill:var(--bg)"/>
+      <g fill="none" stroke="currentColor" stroke-width="2">
+        <ellipse cx="80" cy="40" rx="76" ry="36"/>
+        <ellipse cx="80" cy="40" rx="50" ry="36"/>
+        <ellipse cx="80" cy="40" rx="22" ry="36"/>
+        <path d="M80 4v72M17 20h126M17 60h126"/>
       </g>
-      <rect x="9" y="24" width="122" height="22" fill="#020f1c" stroke="currentColor" stroke-width="2.4"/>
-      <text x="70" y="40.6" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="15" font-weight="600" letter-spacing="4" fill="currentColor">LUMON</text>
+      <rect x="10" y="29" width="140" height="22" style="fill:var(--bg)"/>
+      <path d="M8 29h144M8 51h144" stroke="currentColor" stroke-width="2"/>
+      <text x="80" y="47.5" text-anchor="middle" font-family="Montserrat, sans-serif" font-size="21" font-weight="700" letter-spacing="2" fill="currentColor">LUMON</text>
+    </symbol>
+    <symbol id="thumb" viewBox="0 0 24 24">
+      <path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"
+        d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
     </symbol>
   </defs>
 </svg>
@@ -30,15 +36,20 @@
 <div id="screen">
   <header>
     <div class="hbox">
-      <div class="hfill"></div>
       <span class="fname">Cold Harbor</span>
-      <span class="hpct">0% Complete</span>
+      <div class="hprog">
+        <span class="hlabel"><b class="hpct">0%</b> Complete</span>
+        <div class="htrack"><i class="hfill"></i></div>
+      </div>
     </div>
     <svg class="logo"><use href="#lumon"/></svg>
   </header>
   <div class="rule"></div>
 
-  <div id="field"><canvas id="grid"></canvas></div>
+  <div id="field">
+    <canvas id="grid"></canvas>
+    <div id="nope"><svg><use href="#thumb"/></svg><span>Nope</span></div>
+  </div>
 
   <div class="rule"></div>
   <div id="bins"></div>
@@ -46,20 +57,41 @@
     <span id="coords">0x000000 : 0x000000</span>
     <button id="helpBtn" aria-label="Hilfe">?</button>
   </footer>
+
+  <div id="boot">
+    <div id="bootlog"></div>
+    <svg id="bootlogo"><use href="#lumon"/></svg>
+    <div id="prompt"><span>&gt;</span> <span id="ptext"></span><i></i></div>
+    <div id="phint">Dateinamen eingeben und Enter drücken · leer lassen für die zugewiesene Datei</div>
+    <input id="pinput" type="text" autocomplete="off" autocapitalize="words" spellcheck="false" maxlength="24" aria-label="Dateiname">
+    <div id="rolodex">
+      <div class="rolo">
+        <div class="rtabs"></div>
+        <div class="rhandle l"></div><div class="rhandle r"></div>
+        <div class="rcard top"><div class="rname"></div></div>
+        <div class="rring a"></div><div class="rring b"></div>
+        <div class="rcard bottom"></div>
+        <div class="rbase"><span></span><span></span><span></span><span></span></div>
+      </div>
+      <div class="rnav"><button data-dir="-1" aria-label="Zurück">‹</button><button data-dir="1" aria-label="Weiter">›</button></div>
+      <div class="rhint">Pfeiltasten blättern · Karte mit deiner Datei anklicken</div>
+    </div>
+    <button id="skip">Überspringen ›</button>
+  </div>
 </div>
 
 <canvas id="fx"></canvas>
 <div id="crt"></div>
 
-<div id="toast">Finde die Zahlen, die sich beängstigend anfühlen. Markieren, dann einen Behälter wählen. <b>?</b> = Hilfe</div>
+<div id="toast">Finde die Zahlen, die sich beängstigend anfühlen. Markieren, dann den richtigen Behälter wählen. <b>?</b> = Hilfe</div>
 
 <div id="help" class="ovl">
   <div class="card">
     <h2>Macrodata Refinement</h2>
     <ul>
-      <li>Fahre mit der Maus über das Zahlenfeld. Manche Zahlengruppen fühlen sich <em>beängstigend</em> an: Sie zittern und wachsen, wenn du in ihre Nähe kommst.</li>
+      <li>Fahre mit der Lupe über das Zahlenfeld. Manche Zahlengruppen fühlen sich <em>beängstigend</em> an: Sie zittern und wachsen, wenn du in ihre Nähe kommst.</li>
       <li><b>Klicken</b> markiert eine Zahl, <b>Ziehen</b> markiert einen Bereich. Rechtsklick oder <b>Esc</b> hebt die Auswahl auf.</li>
-      <li>Klick auf einen Behälter (oder Taste <b>1–5</b>) sortiert die markierten Zahlen ein. Mindestens 60&nbsp;% einer Gruppe müssen markiert sein.</li>
+      <li>Klick auf einen Behälter (oder Taste <b>1–5</b>) sortiert die markierten Zahlen ein. Jede Gruppe gehört in genau einen Behälter; beim falschen kommt ein „Nope“ und die Zahlen bleiben im Feld.</li>
       <li><b>Scrollen</b>, <b>Pfeiltasten</b> oder <b>zwei Finger</b> verschieben das Feld.</li>
       <li>Jeder Behälter fasst drei Gruppen. Sind alle fünf voll, ist die Datei abgeschlossen und es gibt eine Belohnung.</li>
       <li><b>M</b> schaltet den Ton an oder aus.</li>
@@ -78,7 +110,7 @@
     <div class="reward">
       <div class="rlabel">Deine Belohnung</div>
       <div class="ricon"></div>
-      <div class="rname"></div>
+      <div class="rtitle"></div>
       <div class="rdesc"></div>
     </div>
     <div class="genres">
@@ -96,11 +128,6 @@
   <canvas></canvas>
   <div class="ptitle"></div>
   <button class="btn" id="partyStop">Zurück an die Arbeit</button>
-</div>
-
-<div id="splash">
-  <svg class="biglogo"><use href="#lumon"/></svg>
-  <div class="stitle">Macrodata Refinement</div>
 </div>
 
 <script src="app.js"></script>
