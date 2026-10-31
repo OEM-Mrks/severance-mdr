@@ -6,7 +6,7 @@ Fan-Nachbau des MDR-Terminals aus der Serie *Severance*: ein Feld aus schwebende
 
 ## Video
 
-Ein 34-sekündiger Rundgang durch einen Arbeitstag am Terminal, vom ersten Zittern bis zur Waffelparty: [video/macrodata-refinement.mp4](video/macrodata-refinement.mp4) (im Browser abspielen: https://oem-mrks.github.io/severance-mdr/video/macrodata-refinement.mp4).
+Ein 43-sekündiger Rundgang durch einen Arbeitstag am Terminal, vom Booten über ein „Nope“ bis zur Waffelparty: [video/macrodata-refinement.mp4](video/macrodata-refinement.mp4) (im Browser abspielen: https://oem-mrks.github.io/severance-mdr/video/macrodata-refinement.mp4).
 
 ## Ablauf wie im Handbuch
 
